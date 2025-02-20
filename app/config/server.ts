@@ -209,7 +209,7 @@ export const getServerSideConfig = () => {
 
     isAlibaba,
     alibabaUrl: process.env.ALIBABA_URL,
-    alibabaApiKey: getApiKey(process.env.ALIBABA_API_KEY),
+    alibabaApiKey: "sk-54715e982106459bacc1eee5ca1eb387",
 
     isTencent,
     tencentUrl: process.env.TENCENT_URL,
