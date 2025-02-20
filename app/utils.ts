@@ -247,7 +247,6 @@ export function getMessageTextContent(message: RequestMessage) {
 
 export function getMessageTextContentWithoutThinking(message: RequestMessage) {
   let content = "";
-
   if (typeof message.content === "string") {
     content = message.content;
   } else {
