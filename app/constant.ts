@@ -568,18 +568,20 @@ const bytedanceModels = [
 
 const alibabaModes = [
   "qwen-turbo",
+  "qwen-turbo-latest",
   "qwen-plus",
+  "qwen-plus-latest",
   "qwen-max",
-  "qwen-max-0428",
-  "qwen-max-0403",
-  "qwen-max-0107",
-  "qwen-max-longcontext",
+  "qwen-max-latest",
   "qwen-long",
   "deepseek-v3",
+  "deepseek-r1-distill-qwen-32b",
   "deepseek-r1",
   "qwen-omni-turbo",
+  "qwen-omni-turbo-latest",
   "qwen-vl-plus",
   "qwen-vl-max",
+  "qwen2.5-vl-72b-instruct",
 ];
 
 const tencentModels = [
