@@ -116,21 +116,6 @@ export class QwenApi implements LLMApi {
       messages.push({ role: v.role, content });
     }
 
-    const visionModel = isVisionModel(options.config.model);
-
-    const messages: ChatOptions["messages"] = [];
-    for (const v of options.messages) {
-      const content = (
-        visionModel
-          ? await preProcessImageContentForAlibabaDashScope(v.content)
-          : v.role === "assistant"
-          ? getMessageTextContentWithoutThinking(v)
-          : getMessageTextContent(v)
-      ) as any;
-
-      messages.push({ role: v.role, content });
-    }
-
     const shouldStream = !!options.config.stream;
     const requestPayload: RequestPayload = {
       model: modelConfig.model,
