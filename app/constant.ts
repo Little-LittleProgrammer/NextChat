@@ -222,7 +222,6 @@ export const ByteDance = {
 export const Alibaba = {
   ExampleEndpoint: ALIBABA_BASE_URL,
   ChatPath: (modelName: string) => {
-    console.log("modelName", modelName);
     if (modelName.includes("vl") || modelName.includes("omni")) {
       return "v1/services/aigc/multimodal-generation/generation";
     }
