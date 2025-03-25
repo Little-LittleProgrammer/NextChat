@@ -38,7 +38,6 @@ import { collectModelsWithDefaultModel } from "../utils/model";
 import { createEmptyMask, Mask } from "./mask";
 import { executeMcpAction, getAllTools, isMcpEnabled } from "../mcp/actions";
 import { extractMcpJson, isMcpJson } from "../mcp/utils";
-import { mergeWith } from "lodash-es";
 
 const localStorage = safeLocalStorage();
 
@@ -665,9 +664,13 @@ export const useChatStore = createPersistStore(
       ) {
         const config = useAppConfig.getState();
         const session = targetSession;
-        const sessionConfig = session.mask.modelConfig;
-        const modelConfig = mergeWith({}, config.modelConfig, sessionConfig);
-        console.log(modelConfig, config.modelConfig, sessionConfig);
+        const modelConfig = session.mask.modelConfig;
+        if (!modelConfig.compressModel) {
+          modelConfig.compressModel = config.modelConfig.compressModel;
+          modelConfig.compressProviderName =
+            config.modelConfig.compressProviderName;
+        }
+        console.log(modelConfig, config.modelConfig);
         // skip summarize when using dalle3?
         if (isDalle3(modelConfig.model)) {
           return;
