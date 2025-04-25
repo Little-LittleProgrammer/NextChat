@@ -136,7 +136,8 @@ export const getServerSideConfig = () => {
   let customModels = process.env.CUSTOM_MODELS ?? "";
   let defaultModel = process.env.DEFAULT_MODEL ?? "";
   let visionModels =
-    process.env.VISION_MODELS ?? "qwen-omni-turbo,qwen-vl-max,qwen-vl-plus";
+    process.env.VISION_MODELS ??
+    "qwen-omni-turbo,qwen-vl-max,qwen-vl-plus,qvq-max,qvq-max-latest";
 
   if (disableGPT4) {
     if (customModels) customModels += ",";

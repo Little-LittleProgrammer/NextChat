@@ -222,7 +222,11 @@ export const ByteDance = {
 export const Alibaba = {
   ExampleEndpoint: ALIBABA_BASE_URL,
   ChatPath: (modelName: string) => {
-    if (modelName.includes("vl") || modelName.includes("omni")) {
+    if (
+      modelName.includes("vl") ||
+      modelName.includes("omni") ||
+      modelName.includes("qvq")
+    ) {
       return "v1/services/aigc/multimodal-generation/generation";
     }
     return `v1/services/aigc/text-generation/generation`;
@@ -580,11 +584,12 @@ const alibabaModes = [
   "deepseek-r1",
   "qwq-plus",
   "qwq-plus-latest",
+  "qvq-max",
+  "qvq-max-latest",
   "qwen-omni-turbo",
   "qwen-omni-turbo-latest",
   "qwen-vl-plus",
   "qwen-vl-max",
-  "qwen2.5-vl-72b-instruct",
 ];
 
 const tencentModels = [
