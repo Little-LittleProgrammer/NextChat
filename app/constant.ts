@@ -599,18 +599,18 @@ const alibabaModes = [
   "qwen-plus-latest",
   "qwen-max",
   "qwen-max-latest",
-  "qwen-long",
+  "qwen3-32b",
+  "qwen3-235b-a22b",
   "deepseek-v3",
   "deepseek-r1-distill-qwen-32b",
   "deepseek-r1",
+  "deepseek-r1-0528",
   "qwq-plus",
   "qwq-plus-latest",
   "qvq-max",
   "qvq-max-latest",
-  "qwen-omni-turbo",
   "qwen-omni-turbo-latest",
-  "qwen-vl-plus",
-  "qwen-vl-max",
+  "qwen-vl-max-latest",
 ];
 
 const tencentModels = [
