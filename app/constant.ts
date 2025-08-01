@@ -522,6 +522,8 @@ export const VISION_MODEL_REGEXES = [
   /learnlm/,
   /qwen-vl/,
   /qwen2-vl/,
+  /qwen-omni/,
+  /qvq/,
   /gpt-4-turbo(?!.*preview)/,
   /^dall-e-3$/,
   /glm-4v/,
