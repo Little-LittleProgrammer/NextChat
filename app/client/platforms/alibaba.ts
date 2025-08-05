@@ -11,6 +11,7 @@ import {
   useChatStore,
   ChatMessageTool,
   usePluginStore,
+  FunctionToolItem,
 } from "@/app/store";
 import {
   preProcessImageContentForAlibabaDashScope,
@@ -56,6 +57,7 @@ interface RequestParam {
   repetition_penalty?: number;
   top_p: number;
   max_tokens?: number;
+  tools?: FunctionToolItem[];
 }
 interface RequestPayload {
   model: string;
@@ -64,6 +66,7 @@ interface RequestPayload {
 }
 
 export class QwenApi implements LLMApi {
+  private audioContext?: AudioContext;
   path(path: string): string {
     const accessStore = useAccessStore.getState();
 
@@ -108,7 +111,6 @@ export class QwenApi implements LLMApi {
       speed: options.speed,
       response_format: options.response_format,
     };
-    console.log("[Request] alibaba speech payload: ", requestPayload);
     const controller = new AbortController();
     options.onController?.(controller);
     try {
@@ -228,11 +230,16 @@ export class QwenApi implements LLMApi {
           .getAsTools(
             useChatStore.getState().currentSession().mask?.plugin || [],
           );
+        // console.log("getAsTools", tools, funcs);
+        const _tools = tools as unknown as FunctionToolItem[];
+        if (_tools && _tools.length > 0) {
+          requestPayload.parameters.tools = _tools;
+        }
         return streamWithThink(
           chatPath,
           requestPayload,
           headers,
-          tools as any,
+          [],
           funcs,
           controller,
           // parseSSE
@@ -265,7 +272,7 @@ export class QwenApi implements LLMApi {
                 });
               } else {
                 // @ts-ignore
-                runTools[index]["function"]["arguments"] += args;
+                runTools[index]["function"]["arguments"] += args || "";
               }
             }
 
@@ -363,8 +370,11 @@ export class QwenApi implements LLMApi {
 
   // 将 PCM 字节数据转换为 AudioBuffer
   private convertToAudioBuffer(pcmData: Uint8Array) {
-    const audioContext = new (window.AudioContext ||
-      window.webkitAudioContext)();
+    if (!this.audioContext) {
+      this.audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
+    }
+    const audioContext = this.audioContext;
     const channels = 1;
     const sampleRate = 24000;
     return new Promise<AudioBuffer>((resolve, reject) => {
