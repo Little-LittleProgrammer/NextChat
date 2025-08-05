@@ -1,17 +1,22 @@
 [
   {
-    "id": "dalle3",
-    "name": "Dalle3",
-    "schema": "https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat-Awesome-Plugins/main/plugins/dalle/openapi.json"
-  },
-  {
     "id": "arxivsearch",
     "name": "ArxivSearch",
     "schema": "https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat-Awesome-Plugins/main/plugins/arxivsearch/openapi.json"
   },
   {
-    "id": "duckduckgolite",
-    "name": "DuckDuckGoLiteSearch",
-    "schema": "https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat-Awesome-Plugins/main/plugins/duckduckgolite/openapi.json"
+    "id": "jinaUrlContentReader",
+    "name": "JinaUrlContentReader",
+    "schema": "https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat-Awesome-Plugins/refs/heads/main/plugins/jina-r/openapi.json"
+  },
+  {
+    "id": "npmsearch",
+    "name": "NpmSearch",
+    "schema": "https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat-Awesome-Plugins/refs/heads/main/plugins/npmsearch/openapi.json"
+  },
+  {
+    "id": "chatpdf",
+    "name": "ChatPDF",
+    "schema": "https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat-Awesome-Plugins/refs/heads/main/plugins/chatpdf/openapi.json"
   }
 ]
