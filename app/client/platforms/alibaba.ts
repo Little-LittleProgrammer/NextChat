@@ -58,6 +58,7 @@ interface RequestParam {
   top_p: number;
   max_tokens?: number;
   tools?: FunctionToolItem[];
+  enable_search?: boolean;
 }
 interface RequestPayload {
   model: string;
@@ -66,7 +67,7 @@ interface RequestPayload {
 }
 
 export class QwenApi implements LLMApi {
-  private audioContext?: AudioContext;
+  private static audioContext: AudioContext | null = null;
   path(path: string): string {
     const accessStore = useAccessStore.getState();
 
@@ -132,6 +133,7 @@ export class QwenApi implements LLMApi {
       );
 
       const res = await fetch(speechPath, speechPayload);
+      clearTimeout(requestTimeoutId); // Clear timeout on successful connection
 
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
@@ -149,13 +151,12 @@ export class QwenApi implements LLMApi {
           if (line.startsWith("data:")) {
             const data = line.slice(5);
             const json = JSON.parse(data);
-            if (json.output.audio.data) {
+            if (json.output?.audio?.data) {
               yield this.PCMBase64ToAudioBuffer(json.output.audio.data);
             }
           }
         }
       }
-      clearTimeout(requestTimeoutId);
       reader.releaseLock();
     } catch (e) {
       console.log("[Request] failed to make a speech request", e);
@@ -198,6 +199,7 @@ export class QwenApi implements LLMApi {
         temperature: modelConfig.temperature,
         // max_tokens: modelConfig.max_tokens,
         top_p: modelConfig.top_p === 1 ? 0.99 : modelConfig.top_p, // qwen top_p is should be < 1
+        enable_search: modelConfig.enableNetWork,
       },
     };
 
@@ -368,13 +370,17 @@ export class QwenApi implements LLMApi {
     }
   }
 
-  // 将 PCM 字节数据转换为 AudioBuffer
-  private convertToAudioBuffer(pcmData: Uint8Array) {
-    if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext ||
+  private static getAudioContext(): AudioContext {
+    if (!QwenApi.audioContext) {
+      QwenApi.audioContext = new (window.AudioContext ||
         window.webkitAudioContext)();
     }
-    const audioContext = this.audioContext;
+    return QwenApi.audioContext;
+  }
+
+  // 将 PCM 字节数据转换为 AudioBuffer
+  private convertToAudioBuffer(pcmData: Uint8Array) {
+    const audioContext = QwenApi.getAudioContext();
     const channels = 1;
     const sampleRate = 24000;
     return new Promise<AudioBuffer>((resolve, reject) => {
