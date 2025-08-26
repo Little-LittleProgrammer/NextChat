@@ -646,7 +646,7 @@ const alibabaModes = [
   "qwen-max-latest",
   "qwen3-32b",
   "qwen3-235b-a22b",
-  "deepseek-v3",
+  "deepseek-v3.1",
   "deepseek-r1",
   "Moonshot-Kimi-K2-Instruct",
   "qwen3-coder-plus",
