@@ -521,7 +521,7 @@ export const VISION_MODEL_REGEXES = [
   /learnlm/,
   /qwen-vl/,
   /qwen2-vl/,
-  /qwen-omni/,
+  /omni/i,
   /qvq/,
   /gpt-4-turbo(?!.*preview)/,
   /^dall-e-3$/,
@@ -659,9 +659,8 @@ const alibabaModes = [
   "qwen3-coder-480b-a35b-instruct",
   "qvq-max",
   "qvq-max-latest",
-  "qwen-omni-turbo-latest",
-  "qwen-vl-plus",
-  "qwen-vl-max-latest",
+  "qwen3-omni-flash",
+  "qwen3-vl-plus",
 ];
 
 const tencentModels = [
