@@ -648,19 +648,19 @@ const alibabaModes = [
   "qwen-turbo-latest",
   "qwen-plus",
   "qwen-plus-latest",
-  "qwen-max",
-  "qwen-max-latest",
+  "qwen3-max",
+  "qwen3-max-preview",
   "qwen3-32b",
   "qwen3-235b-a22b",
   "deepseek-v3.1",
   "deepseek-r1",
   "Moonshot-Kimi-K2-Instruct",
   "qwen3-coder-plus",
-  "qwen3-coder-480b-a35b-instruct",
   "qvq-max",
   "qvq-max-latest",
   "qwen3-omni-flash",
   "qwen3-vl-plus",
+  "qwen-image-plus"
 ];
 
 const tencentModels = [
