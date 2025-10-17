@@ -230,6 +230,7 @@ export const Alibaba = {
     if (
       modelName.includes("vl") ||
       modelName.includes("omni") ||
+      modelName.includes("image") ||
       modelName.includes("qvq")
     ) {
       return "v1/services/aigc/multimodal-generation/generation";
@@ -520,8 +521,9 @@ export const VISION_MODEL_REGEXES = [
   /gemini-2\.[05]/,
   /learnlm/,
   /qwen-vl/,
-  /qwen2-vl/,
+  /qwen3-vl/,
   /omni/i,
+  /image/i,
   /qvq/,
   /gpt-4-turbo(?!.*preview)/,
   /^dall-e-3$/,
@@ -644,19 +646,15 @@ const bytedanceModels = [
 ];
 
 const alibabaModes = [
-  "qwen-turbo",
   "qwen-turbo-latest",
-  "qwen-plus",
   "qwen-plus-latest",
   "qwen3-max",
   "qwen3-max-preview",
-  "qwen3-32b",
-  "qwen3-235b-a22b",
-  "deepseek-v3.1",
+  "qwen3-next-80b-a3b-thinking",
+  "deepseek-v3.2-exp",
   "deepseek-r1",
   "Moonshot-Kimi-K2-Instruct",
   "qwen3-coder-plus",
-  "qvq-max",
   "qvq-max-latest",
   "qwen3-omni-flash",
   "qwen3-vl-plus",
