@@ -224,9 +224,11 @@ export class QwenApi implements LLMApi {
         temperature: modelConfig.temperature,
         // max_tokens: modelConfig.max_tokens,
         top_p: modelConfig.top_p === 1 ? 0.99 : modelConfig.top_p, // qwen top_p is should be < 1
-        enable_search: modelConfig.enableNetWork,
       },
     };
+    if(modelConfig.enableNetWork) {
+      requestPayload.parameters.enable_search = true;
+    }
 
     const controller = new AbortController();
     options.onController?.(controller);
