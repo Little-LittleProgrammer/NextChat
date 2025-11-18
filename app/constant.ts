@@ -651,15 +651,16 @@ const alibabaModes = [
   "qwen3-max",
   "qwen3-max-preview",
   "qwen3-next-80b-a3b-thinking",
+  "qwen3-coder-plus",
   "deepseek-v3.2-exp",
   "deepseek-r1",
   "Moonshot-Kimi-K2-Instruct",
   "kimi-k2-thinking",
-  "qwen3-coder-plus",
   "qvq-max-latest",
   "qwen3-omni-flash",
   "qwen3-vl-plus",
-  "qwen-image-plus"
+  "qwen-image-plus",
+  "glm-4.6"
 ];
 
 const tencentModels = [

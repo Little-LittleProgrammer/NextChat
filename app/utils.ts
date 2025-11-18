@@ -357,7 +357,7 @@ export function showPlugins(provider: ServiceProvider, model: string) {
   }
   if (
     provider == ServiceProvider.Alibaba &&
-    (model.includes("qwen") || model.includes("deepseek"))
+    (model.includes("qwen") || model.includes("deepseek") || model.toLowerCase().includes("kimi"))
   ) {
     return true;
   }

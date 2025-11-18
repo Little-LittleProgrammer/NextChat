@@ -296,7 +296,7 @@ export class QwenApi implements LLMApi {
                   type: tool_calls[0]?.type,
                   function: {
                     name: tool_calls[0]?.function?.name as string,
-                    arguments: args,
+                    arguments: args || "",
                   },
                 });
               } else {

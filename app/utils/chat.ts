@@ -225,6 +225,7 @@ export function stream(
         const toolCallMessage = {
           role: "assistant",
           tool_calls: [...runTools],
+          content: ''
         };
         running = true;
         runTools.splice(0, runTools.length); // empty runTools
@@ -451,12 +452,14 @@ export function streamWithThink(
         const toolCallMessage = {
           role: "assistant",
           tool_calls: [...runTools],
+          content: ''
         };
         running = true;
         runTools.splice(0, runTools.length); // empty runTools
         return Promise.all(
           toolCallMessage.tool_calls.map((tool) => {
             options?.onBeforeTool?.(tool);
+            console.log("[Tool] calling tool: ", tool.function);
             return Promise.resolve(
               // @ts-ignore
               funcs[tool.function.name](
