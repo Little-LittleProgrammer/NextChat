@@ -18,10 +18,5 @@
     "id": "chatpdf",
     "name": "ChatPDF",
     "schema": "https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat-Awesome-Plugins/refs/heads/main/plugins/chatpdf/openapi.json"
-  },
-  {
-    "id": "duckduckgolite",
-    "name": "DuckDuckGoLiteSearch",
-    "schema": "https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat-Awesome-Plugins/main/plugins/duckduckgolite/openapi.json"
   }
 ]
