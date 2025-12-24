@@ -9,6 +9,7 @@ import {
   BAIDU_BASE_URL,
   BYTEDANCE_BASE_URL,
   ALIBABA_BASE_URL,
+  MINIMAX_BASE_URL,
   TENCENT_BASE_URL,
   MOONSHOT_BASE_URL,
   STABILITY_BASE_URL,
@@ -61,6 +62,8 @@ const DEFAULT_SILICONFLOW_URL = isApp
   : ApiPath.SiliconFlow;
 
 const DEFAULT_AI302_URL = isApp ? AI302_BASE_URL : ApiPath["302.AI"];
+
+const DEFAULT_MINIMAX_URL = isApp ? MINIMAX_BASE_URL : ApiPath.MiniMax;
 
 const DEFAULT_ACCESS_STATE = {
   accessCode: "",
@@ -138,6 +141,10 @@ const DEFAULT_ACCESS_STATE = {
   // 302.AI
   ai302Url: DEFAULT_AI302_URL,
   ai302ApiKey: "",
+
+  // minimax
+  minimaxUrl: DEFAULT_MINIMAX_URL,
+  minimaxApiKey: "",
 
   // server config
   needCode: true,
@@ -226,6 +233,10 @@ export const useAccessStore = createPersistStore(
       return ensure(get(), ["siliconflowApiKey"]);
     },
 
+    isValidMiniMax() {
+      return ensure(get(), ["minimaxApiKey"]);
+    },
+
     isAuthorized() {
       this.fetch();
 
@@ -238,6 +249,7 @@ export const useAccessStore = createPersistStore(
         this.isValidBaidu() ||
         this.isValidByteDance() ||
         this.isValidAlibaba() ||
+        this.isValidMiniMax() ||
         this.isValidTencent() ||
         this.isValidMoonshot() ||
         this.isValidIflytek() ||

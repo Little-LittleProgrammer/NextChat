@@ -555,6 +555,17 @@ const ko: PartialLocaleType = {
           SubTitle: "예: ",
         },
       },
+      MiniMax: {
+        ApiKey: {
+          Title: "엔드포인트 키",
+          SubTitle: "커스텀 MiniMax API 키 사용",
+          Placeholder: "MiniMax API 키",
+        },
+        Endpoint: {
+          Title: "엔드포인트 주소",
+          SubTitle: "예: ",
+        },
+      },
     },
 
     Model: "모델 (model)",

@@ -451,6 +451,17 @@ const es: PartialLocaleType = {
           SubTitle: "Ejemplo:",
         },
       },
+      MiniMax: {
+        ApiKey: {
+          Title: "Clave de interfaz",
+          SubTitle: "Usa una clave API de MiniMax personalizada",
+          Placeholder: "Clave API de MiniMax",
+        },
+        Endpoint: {
+          Title: "Dirección del endpoint",
+          SubTitle: "Ejemplo:",
+        },
+      },
       CustomModel: {
         Title: "Nombre del modelo personalizado",
         SubTitle:

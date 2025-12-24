@@ -558,6 +558,17 @@ const en: LocaleType = {
           SubTitle: "Example: ",
         },
       },
+      MiniMax: {
+        ApiKey: {
+          Title: "MiniMax API Key",
+          SubTitle: "Use a custom MiniMax API Key",
+          Placeholder: "MiniMax API Key",
+        },
+        Endpoint: {
+          Title: "Endpoint Address",
+          SubTitle: "Example: ",
+        },
+      },
     },
 
     Model: "Model",

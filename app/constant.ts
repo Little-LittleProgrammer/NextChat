@@ -23,6 +23,8 @@ export const BYTEDANCE_BASE_URL = "https://ark.cn-beijing.volces.com";
 
 export const ALIBABA_BASE_URL = "https://dashscope.aliyuncs.com/api/";
 
+export const MINIMAX_BASE_URL = "https://api.minimaxi.com";
+
 export const TENCENT_BASE_URL = "https://hunyuan.tencentcloudapi.com";
 
 export const MOONSHOT_BASE_URL = "https://api.moonshot.ai";
@@ -65,6 +67,7 @@ export enum ApiPath {
   Baidu = "/api/baidu",
   ByteDance = "/api/bytedance",
   Alibaba = "/api/alibaba",
+  MiniMax = "/api/minimax",
   Tencent = "/api/tencent",
   Moonshot = "/api/moonshot",
   Iflytek = "/api/iflytek",
@@ -134,6 +137,7 @@ export enum ServiceProvider {
   DeepSeek = "DeepSeek",
   SiliconFlow = "SiliconFlow",
   "302.AI" = "302.AI",
+  MiniMax = "MiniMax",
 }
 
 // Google API safety settings, see https://ai.google.dev/gemini-api/docs/safety-settings
@@ -161,6 +165,7 @@ export enum ModelProvider {
   DeepSeek = "DeepSeek",
   SiliconFlow = "SiliconFlow",
   "302.AI" = "302.AI",
+  MiniMax = "MiniMax",
 }
 
 export const Stability = {
@@ -238,6 +243,11 @@ export const Alibaba = {
     return `v1/services/aigc/text-generation/generation`;
   },
   SpeechPath: "v1/services/aigc/multimodal-generation/generation",
+};
+
+export const MiniMax = {
+  ExampleEndpoint: MINIMAX_BASE_URL,
+  ChatPath: "v1/chat/completions",
 };
 
 export const Tencent = {
@@ -659,9 +669,13 @@ const alibabaModes = [
   "qvq-max-latest",
   "qwen3-omni-flash",
   "qwen3-vl-plus",
-  "qwen-image-plus",
   "glm-4.6"
 ];
+
+const miniMaxModels = [
+    "MiniMax-M2.1",
+    "MiniMax-M2.1-lightning"
+]
 
 const tencentModels = [
   "hunyuan-pro",
@@ -860,6 +874,17 @@ export const DEFAULT_MODELS = [
       sorted: 7,
     },
   })),
+  ...miniMaxModels.map((name) => ({
+    name,
+    available: true,
+    sorted: seq++,
+    provider: {
+      id: "miniMax",
+      providerName: "MiniMax",
+      providerType: "miniMax",
+      sorted: 8,
+    },
+  })),
   //   ...tencentModels.map((name) => ({
   //     name,
   //     available: true,
@@ -915,17 +940,17 @@ export const DEFAULT_MODELS = [
   //       sorted: 12,
   //     },
   //   })),
-  //   ...deepseekModels.map((name) => ({
-  //     name,
-  //     available: true,
-  //     sorted: seq++,
-  //     provider: {
-  //       id: "deepseek",
-  //       providerName: "DeepSeek",
-  //       providerType: "deepseek",
-  //       sorted: 13,
-  //     },
-  //   })),
+    ...deepseekModels.map((name) => ({
+      name,
+      available: true,
+      sorted: seq++,
+      provider: {
+        id: "deepseek",
+        providerName: "DeepSeek",
+        providerType: "deepseek",
+        sorted: 13,
+      },
+    })),
   //   ...siliconflowModels.map((name) => ({
   //     name,
   //     available: true,
