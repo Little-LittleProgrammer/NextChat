@@ -665,20 +665,22 @@ export const useChatStore = createPersistStore(
         const config = useAppConfig.getState();
         const session = targetSession;
         const modelConfig = session.mask.modelConfig;
-        if (!modelConfig.compressModel) {
-          modelConfig.compressModel = config.modelConfig.compressModel;
-          modelConfig.compressProviderName =
-            config.modelConfig.compressProviderName;
-        }
-        console.log(modelConfig, config.modelConfig);
+
+        // 优先使用全局配置的 compressModel 和 compressProviderName
+        const compressModel =
+          config.modelConfig.compressModel || modelConfig.compressModel;
+        const compressProviderName =
+          config.modelConfig.compressProviderName ||
+          modelConfig.compressProviderName;
+
         // skip summarize when using dalle3?
         if (isDalle3(modelConfig.model)) {
           return;
         }
 
         // if not config compressModel, then using getSummarizeModel
-        const [model, providerName] = modelConfig.compressModel
-          ? [modelConfig.compressModel, modelConfig.compressProviderName]
+        const [model, providerName] = compressModel
+          ? [compressModel, compressProviderName]
           : getSummarizeModel(
               session.mask.modelConfig.model,
               session.mask.modelConfig.providerName,
