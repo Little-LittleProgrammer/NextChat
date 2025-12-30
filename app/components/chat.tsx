@@ -1135,7 +1135,16 @@ function _Chat() {
     setIsLoading(true);
     chatStore
       .onUserInput(userInput, attachImages)
-      .then(() => setIsLoading(false));
+      .then(() => {
+        setIsLoading(false);
+        // 发送系统通知
+        if (window.__TAURI__) {
+          window.__TAURI__.notification.sendNotification({
+            title: "对话已完成",
+            body: userInput.length > 100 ? userInput.slice(0, 100) + "..." : userInput,
+          });
+        }
+      });
     setAttachImages([]);
     chatStore.setLastInput(userInput);
     setUserInput("");
@@ -1287,7 +1296,16 @@ function _Chat() {
     setIsLoading(true);
     const textContent = getMessageTextContent(userMessage);
     const images = getMessageImages(userMessage);
-    chatStore.onUserInput(textContent, images).then(() => setIsLoading(false));
+    chatStore.onUserInput(textContent, images).then(() => {
+      setIsLoading(false);
+      // 发送系统通知
+      if (window.__TAURI__) {
+        window.__TAURI__.notification.sendNotification({
+          title: "对话已完成",
+          body: textContent.length > 100 ? textContent.slice(0, 100) + "..." : textContent,
+        });
+      }
+    });
     inputRef.current?.focus();
   };
 
