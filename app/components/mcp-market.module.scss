@@ -59,6 +59,21 @@
       gap: 1px;
     }
 
+    .server-section {
+      margin-bottom: 24px;
+
+      .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--black);
+        margin-bottom: 12px;
+        padding: 0 8px;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
     .mcp-market-item {
       padding: 20px;
       border: var(--border-in-light);
@@ -170,6 +185,10 @@
             &.initializing {
               background-color: #f59e0b;
               animation: pulse 1.5s infinite;
+            }
+
+            &.custom {
+              background-color: #8b5cf6;
             }
 
             .error-message {
@@ -588,6 +607,60 @@
         padding-left: 15px;
         box-sizing: border-box;
         width: 100%;
+      }
+    }
+  }
+
+  .custom-args-input {
+    width: 100%;
+    padding: 10px;
+    border: var(--border-in-light);
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 14px;
+    background-color: var(--white);
+    color: var(--black);
+    font-family: monospace;
+    resize: vertical;
+
+    &:hover {
+      border-color: var(--gray-300);
+    }
+
+    &:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 2px var(--primary-10);
+    }
+  }
+
+  .env-inputs {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border: var(--border-in-light);
+      border-radius: 10px;
+      box-sizing: border-box;
+      font-size: 14px;
+      background-color: var(--white);
+      color: var(--black);
+
+      &:hover {
+        border-color: var(--gray-300);
+      }
+
+      &:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary-10);
+      }
+
+      &::placeholder {
+        color: var(--gray-300);
       }
     }
   }

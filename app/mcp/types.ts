@@ -111,9 +111,16 @@ export interface ServerStatusResponse {
 
 // MCP 服务器配置相关类型
 export interface ServerConfig {
-  command: string;
-  args: string[];
+  // 传输类型：stdio 或 sse
+  type?: "stdio" | "sse";
+  // stdio 模式：命令和参数
+  command?: string;
+  args?: string[];
   env?: Record<string, string>;
+  // SSE 模式：URL 和请求头
+  url?: string;
+  headers?: Record<string, string>;
+  // 服务器状态
   status?: "active" | "paused" | "error";
 }
 

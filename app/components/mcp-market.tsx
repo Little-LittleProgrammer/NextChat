@@ -16,6 +16,7 @@ import {
   getClientsStatus,
   getClientTools,
   getMcpConfigFromFile,
+  importUserMcpConfig,
   isMcpEnabled,
   pauseMcpServer,
   restartAllClients,
@@ -32,6 +33,11 @@ import clsx from "clsx";
 import PlayIcon from "../icons/play.svg";
 import StopIcon from "../icons/pause.svg";
 import { Path } from "../constant";
+
+interface CustomServerForm {
+  id: string;
+  json: string;
+}
 
 interface ConfigProperty {
   type: string;
@@ -58,6 +64,11 @@ export function McpMarketPage() {
   const [loadingStates, setLoadingStates] = useState<Record<string, string>>(
     {},
   );
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [customForm, setCustomForm] = useState<CustomServerForm>({
+    id: "",
+    json: "",
+  });
 
   // 检查 MCP 是否启用
   useEffect(() => {
@@ -116,7 +127,9 @@ export function McpMarketPage() {
       if (!mcpEnabled) return;
       try {
         setIsLoading(true);
-        const config = await getMcpConfigFromFile();
+        // 优先导入用户目录的配置
+        const config = await importUserMcpConfig();
+        console.log("config", config);
         setConfig(config);
 
         // 获取所有客户端的状态
@@ -145,10 +158,10 @@ export function McpMarketPage() {
           if (mapping.type === "spread") {
             // For spread types, extract the array from args.
             const startPos = mapping.position ?? 0;
-            userConfig[key] = currentConfig.args.slice(startPos);
+            userConfig[key] = currentConfig.args?.slice(startPos) ?? [];
           } else if (mapping.type === "single") {
             // For single types, get a single value
-            userConfig[key] = currentConfig.args[mapping.position ?? 0];
+            userConfig[key] = currentConfig.args?.[mapping.position ?? 0] ?? "";
           } else if (
             mapping.type === "env" &&
             mapping.key &&
@@ -222,6 +235,57 @@ export function McpMarketPage() {
       );
     } finally {
       updateLoadingState(savingServerId, null);
+    }
+  };
+
+  // 添加自定义服务器
+  const addCustomServer = async () => {
+    if (!customForm.id.trim()) {
+      showToast("Server ID is required");
+      return;
+    }
+
+    if (!customForm.json.trim()) {
+      showToast("Server configuration JSON is required");
+      return;
+    }
+
+    try {
+      // 解析 JSON 配置
+      let serverConfig: ServerConfig;
+      try {
+        serverConfig = JSON.parse(customForm.json.trim());
+      } catch (parseError) {
+        showToast("Invalid JSON format. Please check your JSON syntax.");
+        return;
+      }
+
+      // 验证必需的字段
+      if (serverConfig.type === "sse") {
+        if (!serverConfig.url) {
+          showToast("SSE transport requires 'url' field");
+          return;
+        }
+      } else {
+        // 默认为 stdio
+        if (!serverConfig.command) {
+          showToast("Stdio transport requires 'command' field");
+          return;
+        }
+      }
+
+      const newConfig = await addMcpServer(customForm.id.trim(), serverConfig);
+      setConfig(newConfig);
+      showToast("Custom server added successfully");
+      setShowCustomModal(false);
+      setCustomForm({
+        id: "",
+        json: "",
+      });
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Failed to add custom server",
+      );
     }
   };
 
@@ -303,7 +367,7 @@ export function McpMarketPage() {
       showToast(
         error instanceof Error
           ? error.message
-          : "Failed to start server, please check logs",
+          : `Failed to start server, please check logs, ${error}`,
       );
       console.error(error);
     } finally {
@@ -444,6 +508,83 @@ export function McpMarketPage() {
     if (message.toLowerCase().includes("starting")) return "starting";
     if (message.toLowerCase().includes("error")) return "error";
     return "default";
+  };
+
+  // Get custom servers (servers in config that are not in presetServers)
+  const getCustomServers = () => {
+    if (!config?.mcpServers) return [];
+    return Object.entries(config.mcpServers).filter(
+      ([id]) => !presetServers.some((p) => p.id === id),
+    );
+  };
+
+  // Render custom server item
+  const renderCustomServerItem = ([serverId, serverConfig]: [string, any]) => {
+    const status = checkServerStatus(serverId);
+    const isLoading = !!loadingStates[serverId];
+
+    return (
+      <div
+        className={clsx(styles["mcp-market-item"], {
+          [styles["loading"]]: isLoading,
+        })}
+        key={serverId}
+      >
+        <div className={styles["mcp-market-header"]}>
+          <div className={styles["mcp-market-title"]}>
+            <div className={styles["mcp-market-name"]}>
+              {serverId}
+              {isLoading && (
+                <span
+                  className={styles["operation-status"]}
+                  data-status={getOperationStatusType(loadingStates[serverId])}
+                >
+                  {loadingStates[serverId]}
+                </span>
+              )}
+              {!isLoading && (
+                <span className={clsx(styles["server-status"], styles["custom"])}>
+                  Custom
+                </span>
+              )}
+              {!isLoading && getServerStatusDisplay(serverId)}
+            </div>
+            <div className={styles["mcp-market-info"]}>
+              {serverConfig.command} {serverConfig.args?.join(" ") || ""}
+            </div>
+          </div>
+          <div className={styles["mcp-market-actions"]}>
+            <IconButton
+              icon={<EyeIcon />}
+              text="Tools"
+              onClick={async () => {
+                setViewingServerId(serverId);
+                await loadTools(serverId);
+              }}
+              disabled={
+                isLoading ||
+                status.status === "error"
+              }
+            />
+            {status.status === "paused" ? (
+              <IconButton
+                icon={<PlayIcon />}
+                text="Start"
+                onClick={() => restartServer(serverId)}
+                disabled={isLoading}
+              />
+            ) : (
+              <IconButton
+                icon={<StopIcon />}
+                text="Stop"
+                onClick={() => pauseServer(serverId)}
+                disabled={isLoading}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // 渲染服务器列表
@@ -673,6 +814,12 @@ export function McpMarketPage() {
 
         <div className={styles["mcp-market-page-body"]}>
           <div className={styles["mcp-market-filter"]}>
+            <IconButton
+              icon={<AddIcon />}
+              text="Custom"
+              onClick={() => setShowCustomModal(true)}
+              bordered
+            />
             <input
               type="text"
               className={styles["search-bar"]}
@@ -682,7 +829,21 @@ export function McpMarketPage() {
             />
           </div>
 
-          <div className={styles["server-list"]}>{renderServerList()}</div>
+          <div className={styles["server-list"]}>
+            {/* My Servers Section */}
+            {getCustomServers().length > 0 && (
+              <div className={styles["server-section"]}>
+                <div className={styles["section-title"]}>My Servers</div>
+                {getCustomServers().map(renderCustomServerItem)}
+              </div>
+            )}
+
+            {/* Preset Servers Section */}
+            <div className={styles["server-section"]}>
+              <div className={styles["section-title"]}>Market</div>
+              {renderServerList()}
+            </div>
+          </div>
         </div>
 
         {/*编辑服务器配置*/}
@@ -746,6 +907,59 @@ export function McpMarketPage() {
                   <div>No tools available</div>
                 )}
               </div>
+            </Modal>
+          </div>
+        )}
+
+        {/* 自定义服务器弹窗 */}
+        {showCustomModal && (
+          <div className="modal-mask">
+            <Modal
+              title="Add Custom MCP Server"
+              onClose={() => setShowCustomModal(false)}
+              actions={[
+                <IconButton
+                  key="cancel"
+                  text="Cancel"
+                  onClick={() => setShowCustomModal(false)}
+                  bordered
+                />,
+                <IconButton
+                  key="confirm"
+                  text="Add"
+                  type="primary"
+                  onClick={addCustomServer}
+                  bordered
+                />,
+              ]}
+            >
+              <List>
+                <ListItem title="Server ID" subTitle="Unique identifier for this server">
+                  <input
+                    type="text"
+                    value={customForm.id}
+                    placeholder="e.g., my-custom-server"
+                    onChange={(e) =>
+                      setCustomForm({ ...customForm, id: e.target.value })
+                    }
+                  />
+                </ListItem>
+                <ListItem
+                  title="Server Configuration (JSON)"
+                  subTitle="Enter the server configuration in JSON format"
+                  vertical
+                >
+                  <textarea
+                    className={styles["custom-args-input"]}
+                    value={customForm.json}
+                    placeholder={`{\n  "type": "stdio",\n  "command": "npx",\n  "args": ["-y", "@some/mcp-server"],\n  "env": {\n    "API_KEY": "your-api-key"\n  }\n}\n\nOr for SSE:\n{\n  "type": "sse",\n  "url": "https://example.com/mcp",\n  "headers": {\n    "Authorization": "Bearer token"\n  }\n}`}
+                    rows={12}
+                    onChange={(e) =>
+                      setCustomForm({ ...customForm, json: e.target.value })
+                    }
+                  />
+                </ListItem>
+              </List>
             </Modal>
           </div>
         )}

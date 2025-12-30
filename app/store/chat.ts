@@ -37,7 +37,12 @@ import { useAccessStore } from "./access";
 import { collectModelsWithDefaultModel } from "../utils/model";
 import { createEmptyMask, Mask } from "./mask";
 import { executeMcpAction, getAllTools, isMcpEnabled } from "../mcp/actions";
-import { extractMcpJson, isMcpJson } from "../mcp/utils";
+import {
+  extractMcpJson,
+  isMcpJson,
+  removeMcpResponseBlocks,
+  removeMcpRequestBlocks,
+} from "../mcp/utils";
 
 const localStorage = safeLocalStorage();
 
@@ -556,7 +561,9 @@ export const useChatStore = createPersistStore(
             session.mask.modelConfig.model.startsWith("chatgpt-"));
 
         const mcpEnabled = await isMcpEnabled();
-        const mcpSystemPrompt = mcpEnabled ? await getMcpSystemPrompt() : "";
+
+        const tools = await getAllTools();
+        const mcpSystemPrompt = mcpEnabled && tools.length > 0 ? await getMcpSystemPrompt() : "";
 
         var systemPrompts: ChatMessage[] = [];
 
@@ -835,27 +842,273 @@ export const useChatStore = createPersistStore(
       checkMcpJson(message: ChatMessage) {
         const mcpEnabled = isMcpEnabled();
         if (!mcpEnabled) return;
-        const content = getMessageTextContent(message);
+        // 移除响应块后再检查，避免重复处理
+        const content = removeMcpResponseBlocks(
+          getMessageTextContent(message),
+        );
         if (isMcpJson(content)) {
           try {
             const mcpRequest = extractMcpJson(content);
             if (mcpRequest) {
               console.debug("[MCP Request]", mcpRequest);
 
+              const session = get().currentSession();
+              // 找到包含 MCP JSON 的消息（应该是最后一条 assistant 消息）
+              const messageIndex = session.messages.findIndex(
+                (m) => m.id === message.id,
+              );
+              if (messageIndex === -1) return;
+
+              const botMessage = session.messages[messageIndex];
+              if (botMessage.role !== "assistant") return;
+
+              // 防止重复处理：如果消息正在流式传输或已有工具在处理中，跳过
+              if (botMessage.streaming) {
+                console.debug("[MCP] Message is streaming, skipping check");
+                return;
+              }
+              // 检查是否已经有相同工具名称的工具在处理中
+              const toolName = mcpRequest.mcp?.params?.name || "mcp_tool_call";
+              const hasProcessingTool = botMessage.tools?.some(
+                (t) =>
+                  t.function?.name === toolName &&
+                  t.isError === undefined, // loading 状态
+              );
+              if (hasProcessingTool) {
+                console.debug(
+                  "[MCP] Tool already processing, skipping check",
+                  toolName,
+                );
+                return;
+              }
+
+
+              // 创建工具调用对象（loading 状态）
+              const tool: ChatMessageTool = {
+                id: nanoid(),
+                type: "function",
+                function: {
+                  name: toolName,
+                  arguments: JSON.stringify(
+                    mcpRequest.mcp?.params?.arguments || {},
+                  ),
+                },
+                isError: undefined, // loading 状态
+              };
+
+              // 添加工具调用到消息中
+              get().updateTargetSession(session, (session) => {
+                const msgIndex = session.messages.findIndex(
+                  (m) => m.id === botMessage.id,
+                );
+                if (msgIndex !== -1) {
+                  const msg = session.messages[msgIndex];
+                  (msg.tools = msg.tools || []).push(tool);
+                }
+                session.messages = session.messages.concat();
+              });
+
+              // 执行 MCP 调用
               executeMcpAction(mcpRequest.clientId, mcpRequest.mcp)
                 .then((result) => {
                   console.log("[MCP Response]", result);
+
+                  // 更新工具状态为成功
+                  const updatedTool: ChatMessageTool = {
+                    ...tool,
+                    isError: false,
+                    content:
+                      typeof result === "object"
+                        ? JSON.stringify(result)
+                        : String(result),
+                  };
+
+                  // 更新消息中的工具状态
+                  get().updateTargetSession(session, (session) => {
+                    const msgIndex = session.messages.findIndex(
+                      (m) => m.id === botMessage.id,
+                    );
+                    if (msgIndex !== -1) {
+                      const msg = session.messages[msgIndex];
+                      msg.tools?.forEach((t, i, tools) => {
+                        if (tool.id === t.id) {
+                          tools[i] = updatedTool;
+                        }
+                      });
+                    }
+                  });
+
+                  // 保存当前消息内容（用于后续追加）
+                  // 移除响应块和请求块，因为 API 返回的内容会基于消息历史（已包含这些块）
+                  const currentContent = removeMcpRequestBlocks(
+                    removeMcpResponseBlocks(getMessageTextContent(botMessage)),
+                  );
+
+                  // 将 MCP 结果添加到消息历史中，然后继续更新当前的 assistant 消息
+                  // 这样 AI 就能看到工具结果并在同一轮对话中继续处理
                   const mcpResponse =
                     typeof result === "object"
-                      ? JSON.stringify(result)
+                      ? JSON.stringify(result, null, 2)
                       : String(result);
-                  get().onUserInput(
-                    `\`\`\`json:mcp-response:${mcpRequest.clientId}\n${mcpResponse}\n\`\`\``,
-                    [],
-                    true,
+                  const mcpResponseContent = `\`\`\`json:mcp-response:${mcpRequest.clientId}\n${mcpResponse}\n\`\`\``;
+
+                  // 创建工具结果消息（仅用于 API 调用，不添加到 session.messages）
+                  const toolResultMessage: ChatMessage = createMessage({
+                    role: "user",
+                    content: mcpResponseContent,
+                    isMcpResponse: true,
+                  });
+
+                  // 继续更新当前的 assistant 消息
+                  const currentSession = get().currentSession();
+                  const api: ClientApi = getClientApi(
+                    currentSession.mask.modelConfig.providerName,
                   );
+
+                  // 获取消息历史，然后手动添加工具结果（不保存到 session.messages）
+                  get()
+                    .getMessagesWithMemory()
+                    .then((recentMessages) => {
+                      // 将工具结果添加到请求消息列表中（仅用于 API 调用）
+                      const messagesWithToolResult = [
+                        ...recentMessages,
+                        toolResultMessage,
+                      ];
+                      console.log("[Messages With Tool Result]", messagesWithToolResult);
+
+                      // 继续流式更新当前的 assistant 消息
+                      // 使用固定的 currentContent 作为基础，message 是 API 返回的累积内容
+                      botMessage.streaming = true;
+                      api.llm.chat({
+                        messages: messagesWithToolResult,
+                        config: {
+                          ...currentSession.mask.modelConfig,
+                          stream: true,
+                        },
+                        onUpdate(message) {
+                          botMessage.streaming = true;
+                          if (message) {
+                            // message 是 API 返回的累积内容（不包含响应块）
+                            // 直接使用固定的 currentContent + message，避免重复追加
+                            console.log("[MCP Update]", currentContent, message);
+                            botMessage.content = currentContent + message;
+                          }
+                          get().updateTargetSession(
+                            currentSession,
+                            (session) => {
+                              session.messages = session.messages.concat();
+                            },
+                          );
+                        },
+                        async onFinish(message) {
+                          botMessage.streaming = false;
+                          if (message) {
+                            // message 是完整的累积内容，直接使用固定的 currentContent + message
+                            botMessage.content = currentContent + message;
+                            botMessage.date = new Date().toLocaleString();
+                            // 直接更新消息状态，不调用 onNewMessage 避免重复触发 checkMcpJson
+                            // 如果需要检查新的 MCP JSON，会在下一次消息更新时自动触发
+                            get().updateTargetSession(currentSession, (session) => {
+                              session.messages = session.messages.concat();
+                              session.lastUpdate = Date.now();
+                            });
+                            get().updateStat(botMessage, currentSession);
+                            // 手动检查新的 MCP JSON（如果流式传输完成后有新内容）
+                            get().checkMcpJson(botMessage);
+                          }
+                          ChatControllerPool.remove(
+                            currentSession.id,
+                            botMessage.id,
+                          );
+                        },
+                        onBeforeTool(tool: ChatMessageTool) {
+                          (botMessage.tools = botMessage?.tools || []).push(
+                            tool,
+                          );
+                          get().updateTargetSession(
+                            currentSession,
+                            (session) => {
+                              session.messages = session.messages.concat();
+                            },
+                          );
+                        },
+                        onAfterTool(tool: ChatMessageTool) {
+                          botMessage?.tools?.forEach((t, i, tools) => {
+                            if (tool.id == t.id) {
+                              tools[i] = { ...tool };
+                            }
+                          });
+                          get().updateTargetSession(
+                            currentSession,
+                            (session) => {
+                              session.messages = session.messages.concat();
+                            },
+                          );
+                        },
+                        onError(error) {
+                          const isAborted =
+                            error.message?.includes?.("aborted");
+                          botMessage.content +=
+                            "\n\n" +
+                            prettyObject({
+                              error: true,
+                              message: error.message,
+                            });
+                          botMessage.streaming = false;
+                          botMessage.isError = !isAborted;
+                          get().updateTargetSession(
+                            currentSession,
+                            (session) => {
+                              session.messages = session.messages.concat();
+                            },
+                          );
+                          ChatControllerPool.remove(
+                            currentSession.id,
+                            botMessage.id,
+                          );
+                          console.error("[Chat] failed ", error);
+                        },
+                        onController(controller) {
+                          ChatControllerPool.addController(
+                            currentSession.id,
+                            botMessage.id,
+                            controller,
+                          );
+                        },
+                      });
+                    });
                 })
-                .catch((error) => showToast("MCP execution failed", error));
+                .catch((error) => {
+                  console.error("[MCP Error]", error);
+
+                  // 更新工具状态为错误
+                  const updatedTool: ChatMessageTool = {
+                    ...tool,
+                    isError: true,
+                    errorMsg: error.toString(),
+                  };
+
+                  // 更新消息中的工具状态
+                  get().updateTargetSession(session, (session) => {
+                    const msgIndex = session.messages.findIndex(
+                      (m) => m.id === botMessage.id,
+                    );
+                    if (msgIndex !== -1) {
+                      const msg = session.messages[msgIndex];
+                      msg.tools?.forEach((t, i, tools) => {
+                        if (tool.id === t.id) {
+                          tools[i] = updatedTool;
+                        }
+                      });
+                    }
+                  });
+
+                  get().updateTargetSession(session, (session) => {
+                    session.messages = session.messages.concat();
+                  });
+
+                  showToast("MCP execution failed", error);
+                });
             }
           } catch (error) {
             console.error("[Check MCP JSON]", error);

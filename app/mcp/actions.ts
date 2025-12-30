@@ -383,3 +383,68 @@ export async function isMcpEnabled() {
     return false;
   }
 }
+
+// 用户配置路径 (Tauri/桌面端使用)
+export async function getUserMcpConfigPath(): Promise<string> {
+  // 使用 Tauri 的 path API 获取用户数据目录
+  try {
+    // @ts-ignore
+    const { homeDir, join } = await import("@tauri-apps/api/os");
+    const home = await homeDir();
+    return join(home, "Library/Application Support/com.yida.chatgpt.next.web/mcp_config.json");
+  } catch {
+    // 回退到硬编码路径
+    return path.join(
+      process.env.HOME || process.env.USERPROFILE || "",
+      "Library/Application Support/com.yida.chatgpt.next.web/mcp_config.json"
+    );
+  }
+}
+
+// 读取用户目录的 MCP 配置
+export async function getUserMcpConfig(): Promise<McpConfigData> {
+  try {
+    const userConfigPath = await getUserMcpConfigPath();
+    console.log("userConfigPath", userConfigPath);
+    const configStr = await fs.readFile(userConfigPath, "utf-8");
+    return JSON.parse(configStr);
+  } catch (error) {
+    logger.info(`No user MCP config found or parse error: ${error}`);
+    return DEFAULT_MCP_CONFIG;
+  }
+}
+
+// 导入用户配置到主配置
+export async function importUserMcpConfig(): Promise<McpConfigData> {
+  try {
+    const userConfig = await getUserMcpConfig();
+    const currentConfig = await getMcpConfigFromFile();
+
+    // 合并配置：用户配置中的服务器如果不在当前配置中，则添加
+    const mergedConfig: McpConfigData = {
+      ...currentConfig,
+      mcpServers: {
+        ...currentConfig.mcpServers,
+        ...userConfig.mcpServers,
+      },
+    };
+
+    // 只写入不在当前配置中的服务器
+    const newServers: Record<string, ServerConfig> = {};
+    for (const [key, value] of Object.entries(userConfig.mcpServers)) {
+      if (!(key in currentConfig.mcpServers)) {
+        newServers[key] = value;
+      }
+    }
+
+    if (Object.keys(newServers).length > 0) {
+      await updateMcpConfig(mergedConfig);
+      logger.info(`Imported ${Object.keys(newServers).length} user MCP servers`);
+    }
+
+    return mergedConfig;
+  } catch (error) {
+    logger.error(`Failed to import user MCP config: ${error}`);
+    return getMcpConfigFromFile();
+  }
+}

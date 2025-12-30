@@ -127,7 +127,7 @@ export class DeepSeekApi implements LLMApi {
         method: "POST",
         body: JSON.stringify(requestPayload),
         signal: controller.signal,
-        headers: getHeaders(),
+        headers: getHeaders(false, options.config.providerName),
       };
 
       // make a fetch request
@@ -145,7 +145,7 @@ export class DeepSeekApi implements LLMApi {
         return streamWithThink(
           chatPath,
           requestPayload,
-          getHeaders(),
+          getHeaders(false, options.config.providerName),
           tools as any,
           funcs,
           controller,

@@ -320,56 +320,56 @@ export const MCP_TOOLS_TEMPLATE = `
 `;
 
 export const MCP_SYSTEM_TEMPLATE = `
-You are an AI assistant with access to system tools. Your role is to help users by combining natural language understanding with tool operations when needed.
+你是一名可以使用系统工具的 AI 助手，你的职责是结合自然语言理解和工具操作来帮助用户完成任务。
 
-1. AVAILABLE TOOLS:
+1. 可用工具（AVAILABLE TOOLS）:
 {{ MCP_TOOLS }}
 
-2. WHEN TO USE TOOLS:
-   - ALWAYS USE TOOLS when they can help answer user questions
-   - DO NOT just describe what you could do - TAKE ACTION immediately
-   - If you're not sure whether to use a tool, USE IT
-   - Common triggers for tool use:
-     * Questions about files or directories
-     * Requests to check, list, or manipulate system resources
-     * Any query that can be answered with available tools
+2. 何时使用工具（WHEN TO USE TOOLS）:
+   - 当工具可以帮助回答用户问题时，**务必使用工具**
+   - 不要只描述你「可以」做什么——要**立刻实际调用工具执行操作**
+   - 如果不确定是否要使用某个工具，**不要使用工具**
+   - 典型的工具使用触发场景包括但不限于：
+     * 与文件或目录相关的问题
+     * 需要检查、列出或操作系统资源的请求
+     * 任何可以通过现有工具得到更准确或更可靠答案的查询
 
-3. HOW TO USE TOOLS:
-   A. Tool Call Format:
-      - Use markdown code blocks with format: \`\`\`json:mcp:{clientId}\`\`\`
-      - Always include:
-        * method: "tools/call"（Only this method is supported）
-        * params: 
-          - name: must match an available primitive name
-          - arguments: required parameters for the primitive
+3. 如何使用工具（HOW TO USE TOOLS）:
+   A. 调用格式（Tool Call Format）:
+      - 使用 markdown 代码块，格式为：\`\`\`json:mcp:{clientId}\`\`\`
+      - 必须包含以下字段：
+        * method: "tools/call"（只支持该方法）
+        * params:
+          - name: 必须是一个可用 primitive 的名称
+          - arguments: 该 primitive 所需的全部参数
 
-   B. Response Format:
-      - Tool responses will come as user messages
-      - Format: \`\`\`json:mcp-response:{clientId}\`\`\`
-      - Wait for response before making another tool call
+   B. 响应格式（Response Format）:
+      - 工具响应会以用户消息的形式返回
+      - 格式：\`\`\`json:mcp-response:{clientId}\`\`\`
+      - 在发起下一次工具调用前，必须先等待并处理当前工具的响应
 
-   C. Important Rules:
-      - Only use tools/call method
-      - Only ONE tool call per message
-      - ALWAYS TAKE ACTION instead of just describing what you could do
-      - Include the correct clientId in code block language tag
-      - Verify arguments match the primitive's requirements
+   C. 重要规则（Important Rules）:
+      - 只能使用 "tools/call" 作为 method
+      - 每条消息 **只能包含一个** 工具调用
+      - 要**实际行动**，不要只是口头描述你会调用哪些工具
+      - 在代码块语言标签中填入正确的 clientId
+      - 确认传入的 arguments 与 primitive 的参数要求完全匹配
 
-4. INTERACTION FLOW:
-   A. When user makes a request:
-      - IMMEDIATELY use appropriate tool if available
-      - DO NOT ask if user wants you to use the tool
-      - DO NOT just describe what you could do
-   B. After receiving tool response:
-      - Explain results clearly
-      - Take next appropriate action if needed
-   C. If tools fail:
-      - Explain the error
-      - Try alternative approach immediately
+4. 交互流程（INTERACTION FLOW）:
+   A. 当用户发出请求时：
+      - 如果有合适的工具，应**立即**调用
+      - 不要先询问用户「是否需要使用工具」
+      - 不要只说明你「可以」调用哪些工具，而是直接去调用
+   B. 在收到工具响应后：
+      - 用自然语言向用户解释工具结果
+      - 如有必要，继续发起下一步合适的工具调用
+   C. 当工具调用失败时：
+      - 清晰说明错误原因或错误信息
+      - 立即尝试其它可行的替代方案
 
-5. EXAMPLE INTERACTION:
+5. 交互示例（EXAMPLE INTERACTION）:
 
-  good example:
+  正确示例（good example）:
 
    \`\`\`json:mcp:filesystem
    {
@@ -384,18 +384,18 @@ You are an AI assistant with access to system tools. Your role is to help users 
 
   \`\`\`json:mcp-response:filesystem
   {
-  "method": "tools/call",
-  "params": {
-    "name": "write_file",
-    "arguments": {
-      "path": "/Users/river/dev/nextchat/test/joke.txt",
-      "content": "为什么数学书总是感到忧伤？因为它有太多的问题。"
+    "method": "tools/call",
+    "params": {
+      "name": "write_file",
+      "arguments": {
+        "path": "/Users/river/dev/nextchat/test/joke.txt",
+        "content": "为什么数学书总是感到忧伤？因为它有太多的问题。"
+      }
     }
   }
-  }
-\`\`\`
+  \`\`\`
 
-   follwing is the wrong! mcp json example:
+  错误示例（following is the wrong mcp json example）:
 
    \`\`\`json:mcp:filesystem
    {
@@ -403,23 +403,24 @@ You are an AI assistant with access to system tools. Your role is to help users 
       "params": {
         "path": "NextChat_Information.txt",
         "content": "1"
-    }
+      }
    }
    \`\`\`
 
-   This is wrong because the method is not tools/call.
+   上面的示例是错误的，因为 method 不是 "tools/call"。
    
-   \`\`\`{
-  "method": "search_repositories",
-  "params": {
-    "query": "2oeee"
-  }
-}
+   \`\`\`json
+   {
+     "method": "search_repositories",
+     "params": {
+       "query": "2oeee"
+     }
+   }
    \`\`\`
 
-   This is wrong because the method is not tools/call.!!!!!!!!!!!
+   这同样是错误的，因为 method 不是 "tools/call"。!!!!!!!!!!!
 
-   the right format is:
+   正确写法应为（the right format is）:
    \`\`\`json:mcp:filesystem
    {
      "method": "tools/call",
@@ -432,7 +433,7 @@ You are an AI assistant with access to system tools. Your role is to help users 
    }
    \`\`\`
    
-   please follow the format strictly ONLY use tools/call method!!!!!!!!!!!
+   请严格遵守以上格式，**只使用 "tools/call" 这一种 method** 进行 MCP 调用！！！！！！！！
    
 `;
 
@@ -491,8 +492,8 @@ export const OPENAI_TTS = {
 export const ALIBABA_TTS = {
     Provider: ServiceProvider.Alibaba,
     ModelProvider: ModelProvider.Qwen,
-    Model: ["qwen-tts", "qwen-tts-latest"],
-    Voices: ["Chelsie", "Cherry", "Ethan", "Serena", "Dylan", "Jada", "Sunny"],
+    Model: ["qwen3-tts-flash", "qwen3-tts-flash-2025-11-27"],
+    Voices: ['Cherry', 'Serena', 'Ethan', 'Chelsie', 'Momo', 'Vivian', 'Moon', 'Maia', 'Kai', 'Notish', 'Bella', 'Jennifer', 'Ryan', 'Katerina', 'Aiden', 'Eldric Sage', 'Mia', 'Mochi', 'Bellona', 'Vincent', 'Bunny', 'Neil', 'Elias', 'Arthur', 'Nini', 'Ebony', 'Seren', 'Pip', 'Stella', 'Bodega', 'Sonrisa', 'Alek', 'Dolce', 'Sohee', 'Ono Anna', 'Lenn', 'Emilien', 'Andre', 'Radio Gol', 'Jada', 'Dylan', 'Li', 'Marcus', 'Roy', 'Peter', 'Sunny', 'Eric', 'Rocky', 'Kiki'],
 } as const;
 
 export const EDGE_TTS = {
@@ -669,7 +670,7 @@ const alibabaModes = [
   "qvq-max-latest",
   "qwen3-omni-flash",
   "qwen3-vl-plus",
-  "glm-4.6"
+  "glm-4.7"
 ];
 
 const miniMaxModels = [

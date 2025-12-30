@@ -250,7 +250,10 @@ export function validString(x: string): boolean {
   return x?.length > 0;
 }
 
-export function getHeaders(ignoreHeaders: boolean = false) {
+export function getHeaders(
+  ignoreHeaders: boolean = false,
+  providerName?: string,
+) {
   const accessStore = useAccessStore.getState();
   const chatStore = useChatStore.getState();
   let headers: Record<string, string> = {};
@@ -263,23 +266,24 @@ export function getHeaders(ignoreHeaders: boolean = false) {
 
   const clientConfig = getClientConfig();
 
-  function getConfig() {
+  function getConfig(overrideProviderName?: string) {
     const modelConfig = chatStore.currentSession().mask.modelConfig;
-    const isGoogle = modelConfig.providerName === ServiceProvider.Google;
-    const isAzure = modelConfig.providerName === ServiceProvider.Azure;
-    const isAnthropic = modelConfig.providerName === ServiceProvider.Anthropic;
-    const isBaidu = modelConfig.providerName == ServiceProvider.Baidu;
-    const isByteDance = modelConfig.providerName === ServiceProvider.ByteDance;
-    const isAlibaba = modelConfig.providerName === ServiceProvider.Alibaba;
-    const isMoonshot = modelConfig.providerName === ServiceProvider.Moonshot;
-    const isIflytek = modelConfig.providerName === ServiceProvider.Iflytek;
-    const isDeepSeek = modelConfig.providerName === ServiceProvider.DeepSeek;
-    const isXAI = modelConfig.providerName === ServiceProvider.XAI;
-    const isChatGLM = modelConfig.providerName === ServiceProvider.ChatGLM;
-    const isSiliconFlow =
-      modelConfig.providerName === ServiceProvider.SiliconFlow;
-    const isAI302 = modelConfig.providerName === ServiceProvider["302.AI"];
-    const isMiniMax = modelConfig.providerName === ServiceProvider.MiniMax;
+    // Use the passed providerName, or fallback to the model's providerName
+    const pn = overrideProviderName || providerName || modelConfig.providerName;
+    const isGoogle = pn === ServiceProvider.Google;
+    const isAzure = pn === ServiceProvider.Azure;
+    const isAnthropic = pn === ServiceProvider.Anthropic;
+    const isBaidu = pn == ServiceProvider.Baidu;
+    const isByteDance = pn === ServiceProvider.ByteDance;
+    const isAlibaba = pn === ServiceProvider.Alibaba;
+    const isMoonshot = pn === ServiceProvider.Moonshot;
+    const isIflytek = pn === ServiceProvider.Iflytek;
+    const isDeepSeek = pn === ServiceProvider.DeepSeek;
+    const isXAI = pn === ServiceProvider.XAI;
+    const isChatGLM = pn === ServiceProvider.ChatGLM;
+    const isSiliconFlow = pn === ServiceProvider.SiliconFlow;
+    const isAI302 = pn === ServiceProvider["302.AI"];
+    const isMiniMax = pn === ServiceProvider.MiniMax;
     const isEnabledAccessControl = accessStore.enabledAccessControl();
     const apiKey = isGoogle
       ? accessStore.googleApiKey
@@ -331,11 +335,12 @@ export function getHeaders(ignoreHeaders: boolean = false) {
   }
 
   function getAuthHeader(): string {
-    return isAzure
+    const config = getConfig();
+    return config.isAzure
       ? "api-key"
-      : isAnthropic
+      : config.isAnthropic
       ? "x-api-key"
-      : isGoogle
+      : config.isGoogle
       ? "x-goog-api-key"
       : "Authorization";
   }
@@ -354,7 +359,6 @@ export function getHeaders(ignoreHeaders: boolean = false) {
     isChatGLM,
     isSiliconFlow,
     isAI302,
-    isMiniMax,
     apiKey,
     isEnabledAccessControl,
   } = getConfig();

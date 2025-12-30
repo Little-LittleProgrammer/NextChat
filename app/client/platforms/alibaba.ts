@@ -6,9 +6,10 @@ import {
   useChatStore,
   ChatMessageTool,
   usePluginStore,
-  FunctionToolItem,
+  FunctionToolItem
 } from "@/app/store";
 import { TTSPlayManager } from "@/app/utils/audio";
+
 import {
   preProcessImageContentForAlibabaDashScope,
   streamWithThink,
@@ -227,7 +228,7 @@ export class QwenApi implements LLMApi {
       },
     };
     if(modelConfig.enableNetWork) {
-      requestPayload.parameters.enable_search = true;
+        requestPayload.parameters.enable_search = true;
     }
 
     const controller = new AbortController();
@@ -235,7 +236,7 @@ export class QwenApi implements LLMApi {
 
     try {
       const headers = {
-        ...getHeaders(),
+        ...getHeaders(false, options.config.providerName),
         "X-DashScope-SSE": shouldStream ? "enable" : "disable",
       };
 

@@ -125,7 +125,7 @@ export class MiniMaxApi implements LLMApi {
         method: "POST",
         body: JSON.stringify(requestPayload),
         signal: controller.signal,
-        headers: getHeaders(),
+        headers: getHeaders(false, options.config.providerName),
       };
 
       // make a fetch request
@@ -143,13 +143,13 @@ export class MiniMaxApi implements LLMApi {
 
         // State for tracking MiniMax think content across chunks
         let isInThink = false;
-        let thinkContent = '';
-        let pendingAnswer = '';
+        let thinkContent = "";
+        let pendingAnswer = "";
 
         return streamWithThink(
           chatPath,
           requestPayload,
-          getHeaders(),
+          getHeaders(false, options.config.providerName),
           tools as any,
           funcs,
           controller,
@@ -243,7 +243,9 @@ export class MiniMaxApi implements LLMApi {
                 thinkContent = "";
                 // Remove everything before <think> (should be none)
                 const thinkStart = content.indexOf("<think>");
-                content = content.slice(thinkStart + "<think>".length).trimStart();
+                content = content
+                  .slice(thinkStart + "<think>".length)
+                  .trimStart();
               }
 
               if (isInThink) {
@@ -254,7 +256,9 @@ export class MiniMaxApi implements LLMApi {
                   const thinkDelta = content.slice(0, thinkEnd);
                   thinkContent += thinkDelta;
                   // Content after </think> is answer
-                  const answerContent = content.slice(thinkEnd + "</think>".length);
+                  const answerContent = content.slice(
+                    thinkEnd + "</think>".length,
+                  );
                   // Reset think state
                   isInThink = false;
                   // keep thinkContent for debugging if needed; don't emit the whole buffer to UI
@@ -344,4 +348,3 @@ export class MiniMaxApi implements LLMApi {
     return [];
   }
 }
-

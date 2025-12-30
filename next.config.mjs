@@ -2,7 +2,9 @@ import webpack from "webpack";
 import path from "path";
 
 const mode = process.env.BUILD_MODE ?? "standalone";
+const isTauri = process.env.TAURI_PLATFORM !== undefined;
 console.log("[Next] build mode", mode);
+console.log("[Next] is Tauri build:", isTauri);
 
 const disableChunk = !!process.env.DISABLE_CHUNK || mode === "export";
 console.log("[Next] build with chunk: ", !disableChunk);
@@ -25,13 +27,21 @@ const nextConfig = {
       child_process: false,
     };
 
-    // 在导出模式下使用客户端兼容的MCP actions
-    if (mode === "export") {
+    // 根据构建模式选择不同的 MCP actions 实现
+    if (isTauri) {
+      // Tauri 模式：使用 Tauri API 实现
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        [path.resolve("./app/mcp/actions")]: path.resolve("./app/mcp/actions.tauri.ts"),
+      };
+    } else if (mode === "export") {
+      // 导出模式：使用客户端兼容实现（空实现）
       config.resolve.alias = {
         ...config.resolve.alias,
         [path.resolve("./app/mcp/actions")]: path.resolve("./app/mcp/actions.client.ts"),
       };
     }
+    // 否则使用默认的 actions.ts（服务器端实现）
 
     return config;
   },

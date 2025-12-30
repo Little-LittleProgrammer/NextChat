@@ -16,7 +16,46 @@
       "all": false,
       "shell": {
         "all": false,
-        "open": true
+        "open": true,
+        "execute": true,
+        "sidecar": true,
+        "scope": [
+          {
+            "name": "mcp-server-npx",
+            "cmd": "npx",
+            "args": true
+          },
+          {
+            "name": "mcp-server-node",
+            "cmd": "node",
+            "args": true
+          },
+          {
+            "name": "mcp-server-python",
+            "cmd": "python",
+            "args": true
+          },
+          {
+            "name": "mcp-server-python3",
+            "cmd": "python3",
+            "args": true
+          },
+          {
+            "name": "mcp-server-uvx",
+            "cmd": "uvx",
+            "args": true
+          },
+          {
+            "name": "mcp-server-bash",
+            "cmd": "bash",
+            "args": true
+          },
+          {
+            "name": "mcp-server-sh",
+            "cmd": "sh",
+            "args": true
+          }
+        ]
       },
       "dialog": {
         "all": true,
