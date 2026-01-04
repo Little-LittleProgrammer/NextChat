@@ -346,7 +346,8 @@ export function showPlugins(provider: ServiceProvider, model: string) {
     provider == ServiceProvider.Azure ||
     provider == ServiceProvider.Moonshot ||
     provider == ServiceProvider.ChatGLM ||
-    provider == ServiceProvider.MiniMax
+    provider == ServiceProvider.MiniMax ||
+    provider == ServiceProvider.DeepSeek
   ) {
     return true;
   }
@@ -358,7 +359,10 @@ export function showPlugins(provider: ServiceProvider, model: string) {
   }
   if (
     provider == ServiceProvider.Alibaba &&
-    (model.includes("qwen") || model.includes("deepseek") || model.toLowerCase().includes("kimi"))
+    (model.includes("qwen") ||
+      model.includes("deepseek") ||
+      model.toLowerCase().includes("kimi") ||
+      model.toLowerCase().includes("glm"))
   ) {
     return true;
   }
