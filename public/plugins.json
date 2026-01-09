@@ -18,5 +18,10 @@
     "id": "chatpdf",
     "name": "ChatPDF",
     "schema": "https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat-Awesome-Plugins/refs/heads/main/plugins/chatpdf/openapi.json"
+  },
+  {
+    "id": "Tavily",
+    "name": "Tavily Search & Extract",
+    "schema": "https://raw.githubusercontent.com/ChatGPTNextWeb/NextChat-Awesome-Plugins/refs/heads/main/plugins/tavilysearch/openapi.json"
   }
 ]
