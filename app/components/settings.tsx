@@ -510,6 +510,20 @@ function SyncItems() {
     };
   }, [chatStore.sessions, maskStore.masks, promptStore.prompts]);
 
+  // Toggle daily sync
+  const toggleDailySync = () => {
+    const newValue = !syncStore.dailySyncEnabled;
+    syncStore.update((state) => {
+      state.dailySyncEnabled = newValue;
+    });
+
+    if (newValue) {
+      syncStore.scheduleDailySync();
+    } else {
+      syncStore.cancelDailySync();
+    }
+  };
+
   return (
     <>
       <List>
@@ -549,6 +563,28 @@ function SyncItems() {
             )}
           </div>
         </ListItem>
+
+        {/* Daily Auto Sync - only show when sync is configured */}
+        {couldSync && (
+          <ListItem
+            title={Locale.Settings.Sync.DailySync.Title}
+            subTitle={Locale.Settings.Sync.DailySync.Time}
+          >
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={syncStore.dailySyncEnabled}
+                  onChange={toggleDailySync}
+                  style={{ marginRight: 8, width: 18, height: 18 }}
+                />
+                <span style={{ fontSize: 12, color: "var(--primary)" }}>
+                  {syncStore.dailySyncEnabled ? Locale.UI.Enable : Locale.UI.Disable}
+                </span>
+              </label>
+            </div>
+          </ListItem>
+        )}
 
         <ListItem
           title={Locale.Settings.Sync.LocalState}

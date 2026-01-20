@@ -5,6 +5,7 @@ mod fetch;
 mod logger;
 mod mcp;
 mod stream;
+mod sync;
 
 fn main() {
     // 初始化日志系统
@@ -36,7 +37,10 @@ fn main() {
             mcp::mcp_start_server,
             mcp::mcp_stop_server,
             mcp::mcp_execute_command,
-            mcp::mcp_get_server_status
+            mcp::mcp_get_server_status,
+            sync::schedule_daily_sync,
+            sync::cancel_daily_sync,
+            sync::get_daily_sync_status
         ])
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .build(tauri::generate_context!())

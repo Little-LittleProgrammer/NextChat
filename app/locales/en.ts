@@ -231,6 +231,11 @@ const en: LocaleType = {
       NotSyncYet: "Not sync yet",
       Success: "Sync Success",
       Fail: "Sync Fail",
+      DailySync: {
+        Title: "Daily Auto Sync",
+        Desc: "Automatically sync cloud data at 8:00 AM every day",
+        Time: "Daily at 8:00",
+      },
 
       Config: {
         Modal: {
@@ -816,6 +821,8 @@ const en: LocaleType = {
     Import: "Import",
     Sync: "Sync",
     Config: "Config",
+    Enable: "Enable",
+    Disable: "Disable",
   },
   Exporter: {
     Description: {

@@ -229,6 +229,11 @@ const cn = {
       NotSyncYet: "还没有进行过同步",
       Success: "同步成功",
       Fail: "同步失败",
+      DailySync: {
+        Title: "每日自动同步",
+        Desc: "每天早上 8:00 自动同步云端数据",
+        Time: "每天 8:00",
+      },
 
       Config: {
         Modal: {
@@ -810,6 +815,8 @@ const cn = {
     Import: "导入",
     Sync: "同步",
     Config: "配置",
+    Enable: "启用",
+    Disable: "禁用",
   },
   Exporter: {
     Description: {
